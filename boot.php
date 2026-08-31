@@ -54,6 +54,7 @@ if (\rex_addon::get('mediaplace')->isAvailable()) {
                     'icon' => $meta['icon'],
                     'perm' => $meta['perm'],
                     'class' => $meta['class'],
+                    'color' => (string) ($connection['color'] ?? ''),
                 ];
             }
         }

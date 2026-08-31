@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.0] – 2026-08-31
+
+### Neu
+- **Akzentfarbe je Verbindung**: jede Verbindung kann jetzt optional eine Farbe bekommen (Einstellungen → Verbindung anlegen/bearbeiten, Farbwähler + Zurücksetzen), angezeigt als kleiner Punkt in der Verbindungsliste. `ConnectionStore::create()`/`::setColor()` entsprechend erweitert (rückwärtskompatibel, `color` ist optional und leer per Default). Client-Addons (MediaPlace, `nextcloud`) lesen das Feld und färben ihre eigenen Icons/Rahmen entsprechend ein – hilft, mehrere gleichzeitig aktive Verbindungen desselben Typs auf einen Blick zu unterscheiden.
+
+### Behoben
+- "Speichern"-Button auf der Verbindungs-Formularseite zeigte `[translate:save]` statt "Speichern" – `rex_i18n::msg('save')` erwartete einen nichtexistenten globalen Kern-Sprachschlüssel, jetzt über `$this->i18n('save')` mit eigenem `cloudconnect_save`-Schlüssel gelöst.
+
 ## [1.0.0] – 2026-08-31
 
 Erstes stabiles Release. Funktionsumfang seit 0.2.0/0.3.x unverändert (WebDAV/Nextcloud/Dropbox, mehrere benannte Verbindungen pro Typ, MediaPlace-Cloud-Speicher-Integration) – der Versionssprung markiert, dass cloudconnect inzwischen produktiv sowohl MediaPlace als auch (seit dessen Version 2.0.0) das eigenständige `nextcloud`-Addon als gemeinsame Transportschicht trägt.

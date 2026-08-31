@@ -21,7 +21,7 @@ class ConnectionStore
     public const TYPES = ['webdav', 'nextcloud', 'dropbox'];
 
     /**
-     * @return array<string, array{type: string, label: string, active: bool, config: array<string, mixed>}>
+     * @return array<string, array{type: string, label: string, active: bool, color: string, config: array<string, mixed>}>
      */
     public static function getAll(): array
     {
@@ -30,7 +30,7 @@ class ConnectionStore
     }
 
     /**
-     * @return array<string, array{type: string, label: string, active: bool, config: array<string, mixed>}>
+     * @return array<string, array{type: string, label: string, active: bool, color: string, config: array<string, mixed>}>
      */
     public static function getByType(string $type): array
     {
@@ -38,7 +38,7 @@ class ConnectionStore
     }
 
     /**
-     * @return array<string, array{type: string, label: string, active: bool, config: array<string, mixed>}>
+     * @return array<string, array{type: string, label: string, active: bool, color: string, config: array<string, mixed>}>
      */
     public static function getActiveByType(string $type): array
     {
@@ -46,7 +46,7 @@ class ConnectionStore
     }
 
     /**
-     * @return array{type: string, label: string, active: bool, config: array<string, mixed>}|null
+     * @return array{type: string, label: string, active: bool, color: string, config: array<string, mixed>}|null
      */
     public static function get(string $id): ?array
     {
@@ -56,8 +56,15 @@ class ConnectionStore
 
     /**
      * @param array<string, mixed> $config
+     * @param string $color Optionale Akzentfarbe (Hex, z.B. "#4b9ad9") -- von
+     *                       Client-Addons (MediaPlace, nextcloud) genutzt, um
+     *                       mehrere gleichzeitig aktive Verbindungen desselben
+     *                       Typs optisch unterscheidbar zu machen (Sidebar-
+     *                       Eintrag/Konto-Umschalter). Leer = kein eigener
+     *                       Akzent, Aufrufer faellt auf ihre eigene
+     *                       Default-Farbe zurueck.
      */
-    public static function create(string $type, string $label, bool $active, array $config): string
+    public static function create(string $type, string $label, bool $active, array $config, string $color = ''): string
     {
         $id = bin2hex(random_bytes(4));
         $all = self::getAll();
@@ -65,6 +72,7 @@ class ConnectionStore
             'type' => $type,
             'label' => $label,
             'active' => $active,
+            'color' => $color,
             'config' => $config,
         ];
         \rex_config::set(self::NAMESPACE, self::CONFIG_KEY, $all);
@@ -104,6 +112,11 @@ class ConnectionStore
     public static function setActive(string $id, bool $active): void
     {
         self::update($id, ['active' => $active]);
+    }
+
+    public static function setColor(string $id, string $color): void
+    {
+        self::update($id, ['color' => $color]);
     }
 
     public static function delete(string $id): void

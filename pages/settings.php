@@ -54,6 +54,7 @@ if (1 === rex_post('cloudconnect_save', 'int', 0)) {
     $type = rex_post('cloudconnect_type', 'string', '');
     $label = trim(rex_post('cloudconnect_label', 'string', ''));
     $active = 1 === rex_post('cloudconnect_active', 'int', 0);
+    $color = trim(rex_post('cloudconnect_color', 'string', ''));
 
     $config = null;
     if (in_array($type, $webdavLikeTypes, true)) {
@@ -83,9 +84,9 @@ if (1 === rex_post('cloudconnect_save', 'int', 0)) {
 
     if (null !== $config && '' !== $type && '' !== $label) {
         if ('' !== $id) {
-            ConnectionStore::update($id, ['type' => $type, 'label' => $label, 'active' => $active, 'config' => $config]);
+            ConnectionStore::update($id, ['type' => $type, 'label' => $label, 'active' => $active, 'color' => $color, 'config' => $config]);
         } else {
-            $id = ConnectionStore::create($type, $label, $active, $config);
+            $id = ConnectionStore::create($type, $label, $active, $config, $color);
         }
         echo rex_view::success(rex_i18n::msg('cloudconnect_conn_saved'));
     } else {
@@ -217,11 +218,18 @@ if ('' !== $editId || in_array($newType, [...$webdavLikeTypes, ...$oauthTypes], 
             <?php endif; ?>
         <?php endif; ?>
 
+        <div class="form-group">
+            <label class="control-label"><?= rex_i18n::msg('cloudconnect_conn_color_label') ?></label><br>
+            <input type="color" name="cloudconnect_color" value="<?= rex_escape('' !== ($connection['color'] ?? '') ? $connection['color'] : '#4b9ad9') ?>" style="width:60px; height:34px; padding:2px; vertical-align:middle;">
+            <button type="button" class="btn btn-default" onclick="this.previousElementSibling.value=''" style="vertical-align:middle;"><?= rex_i18n::msg('cloudconnect_conn_color_reset') ?></button>
+            <p class="help-block"><?= rex_i18n::msg('cloudconnect_conn_color_hint') ?></p>
+        </div>
+
         <div class="checkbox">
             <label><input type="checkbox" name="cloudconnect_active" value="1"<?= ($connection['active'] ?? true) ? ' checked' : '' ?>> <?= rex_i18n::msg('cloudconnect_conn_active_label') ?></label>
         </div>
 
-        <button type="submit" class="btn btn-save"><?= rex_i18n::msg('save') ?></button>
+        <button type="submit" class="btn btn-save"><?= $this->i18n('save') ?></button>
         <a href="<?= $listUrl ?>" class="btn btn-abort"><?= rex_i18n::msg('cloudconnect_conn_cancel') ?></a>
     </form>
     <?php
@@ -249,6 +257,7 @@ ob_start();
 <table class="table">
     <thead>
         <tr>
+            <th style="width:1%"></th>
             <th><?= rex_i18n::msg('cloudconnect_conn_col_type') ?></th>
             <th><?= rex_i18n::msg('cloudconnect_conn_col_label') ?></th>
             <th><?= rex_i18n::msg('cloudconnect_conn_col_status') ?></th>
@@ -268,6 +277,7 @@ ob_start();
             $isOauth = in_array($conn['type'], $oauthTypes, true);
         ?>
         <tr>
+            <td><?php if ('' !== ($conn['color'] ?? '')): ?><span style="display:inline-block; width:14px; height:14px; border-radius:50%; background:<?= rex_escape($conn['color']) ?>; vertical-align:middle;" title="<?= rex_escape($conn['color']) ?>"></span><?php endif; ?></td>
             <td><i class="<?= rex_escape($meta['icon']) ?>"></i> <?= rex_escape($meta['label']) ?></td>
             <td><?= rex_escape($conn['label']) ?></td>
             <td>

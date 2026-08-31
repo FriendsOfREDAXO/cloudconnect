@@ -4,6 +4,9 @@ help = Help
 cloudconnect_settings_title = Connections
 
 cloudconnect_conn_label_label = Label
+cloudconnect_conn_color_label = Accent color
+cloudconnect_conn_color_reset = Reset
+cloudconnect_conn_color_hint = Optional – helps tell multiple simultaneously active connections of the same type apart at a glance in MediaPlace and the nextcloud addon. Empty = default color.
 cloudconnect_conn_active_label = Active
 cloudconnect_conn_inactive_label = Inactive
 cloudconnect_conn_cancel = Cancel
@@ -18,6 +21,7 @@ cloudconnect_conn_activate = Activate
 cloudconnect_conn_deactivate = Deactivate
 cloudconnect_conn_delete = Delete
 cloudconnect_conn_delete_confirm = Really delete this connection? Credentials and tokens will be lost (already imported media files are unaffected).
+cloudconnect_save = Save
 cloudconnect_conn_saved = Connection saved.
 cloudconnect_conn_invalid = Please fill in the label and all required fields.
 cloudconnect_conn_deleted = Connection deleted.
