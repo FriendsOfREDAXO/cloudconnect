@@ -522,7 +522,18 @@ XML;
 
             $prop = $propNodes[0];
             $isFolder = [] !== $prop->xpath('d:resourcetype/d:collection');
-            $name = trim((string) $prop->displayname);
+
+            // Namespace-bewusstes xpath() statt bloßer Magic-Property-
+            // Zugriffe ($prop->displayname etc.) -- SimpleXMLElement
+            // loest Magic Properties nur im Default-Namespace des Knotens
+            // auf, PROPFIND-Antworten kommen aber durchgaengig mit
+            // explizitem d:-Praefix. Bug: fuehrte dazu, dass Dateigroesse/
+            // Aenderungsdatum/MIME-Typ auf manchen Servern (je nach exakter
+            // Namespace-Deklaration der Antwort) durchgaengig leer/0 blieben,
+            // obwohl resourcetype/fileid (schon vorher per xpath()) korrekt
+            // ankamen.
+            $displaynameNodes = $prop->xpath('d:displayname');
+            $name = [] !== $displaynameNodes ? trim((string) $displaynameNodes[0]) : '';
             if ('' === $name) {
                 $segments = explode('/', rtrim($entryPath, '/'));
                 $name = (string) end($segments);
@@ -533,15 +544,23 @@ XML;
 
             $fileIdNodes = $prop->xpath('oc:fileid');
             $fileId = [] !== $fileIdNodes ? (string) $fileIdNodes[0] : null;
-            $mimeType = '' !== (string) $prop->getcontenttype ? (string) $prop->getcontenttype : null;
+
+            $mimeTypeNodes = $prop->xpath('d:getcontenttype');
+            $mimeType = [] !== $mimeTypeNodes && '' !== (string) $mimeTypeNodes[0] ? (string) $mimeTypeNodes[0] : null;
+
+            $sizeNodes = $prop->xpath('d:getcontentlength');
+            $filesize = [] !== $sizeNodes ? (int) (string) $sizeNodes[0] : 0;
+
+            $modifiedNodes = $prop->xpath('d:getlastmodified');
+            $modified = [] !== $modifiedNodes && '' !== (string) $modifiedNodes[0] ? (string) $modifiedNodes[0] : null;
 
             $entries[] = [
                 'path' => $entryPath,
                 'name' => $name,
                 'type' => $isFolder ? 'folder' : 'file',
-                'filesize' => $isFolder ? null : (int) (string) $prop->getcontentlength,
+                'filesize' => $isFolder ? null : $filesize,
                 'filetype' => $isFolder ? null : strtolower((string) pathinfo($name, PATHINFO_EXTENSION)),
-                'modified' => '' !== (string) $prop->getlastmodified ? (string) $prop->getlastmodified : null,
+                'modified' => $modified,
                 'fileid' => $fileId,
                 'mimetype' => $mimeType,
             ];

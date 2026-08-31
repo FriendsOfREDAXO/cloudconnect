@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.3.1] – 2026-08-31
+
+### Behoben
+
+- **Dateigröße/Änderungsdatum/MIME-Typ bei Nextcloud-Verbindungen waren immer leer bzw. 0 Byte**: `NextcloudClient::parseMultistatusResponse()` griff für `displayname`/`getcontentlength`/`getlastmodified`/`getcontenttype` auf `SimpleXMLElement`-Magic-Properties zu (`$prop->getcontentlength`), statt wie bei `resourcetype`/`fileid` bereits korrekt gemacht per namespace-bewusstem `xpath('d:getcontentlength')` – Magic Properties lösen nur im Default-Namespace des Knotens auf, WebDAV-PROPFIND-Antworten kommen aber durchgängig mit explizitem `d:`-Präfix. Je nach genauer Namespace-Deklaration der Serverantwort blieben Größe/Datum/MIME-Typ dadurch durchgängig leer (betraf sowohl MediaPlace's Cloud-Browsing als auch das `nextcloud`-Addon, das ab 2.0.0 denselben Client nutzt).
+
 ## [0.3.0] – 2026-08-31
 
 ### Neu
