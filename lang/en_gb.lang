@@ -1,3 +1,6 @@
+settings = Settings
+help = Help
+
 cloudconnect_settings_title = Connections
 
 cloudconnect_conn_label_label = Label

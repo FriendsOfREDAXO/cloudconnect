@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.3.0] – 2026-08-31
+
+### Neu
+
+- `NextcloudClient` (`lib/Nextcloud/NextcloudClient.php`) um generische Transport-Bausteine erweitert, additiv und nicht-breaking: `putContent()` (WebDAV PUT), `deleteFile()` (WebDAV DELETE), `getFileTags()` (oc:tags/oc:fileid via PROPFIND) und `createShareLink()` (OCS Share API). Werden von MediaPlace selbst nicht genutzt, ermöglichen aber dem eigenständigen `nextcloud`-Addon (ab dessen Version 2.0.0), auf seinen bisherigen eigenen WebDAV-/OCS-Unterbau zu verzichten und stattdessen als reiner Client dieser Klasse zu arbeiten – siehe dessen CHANGELOG für den Umbau.
+
 ## [0.2.0] – 2026-08-31
 
 ### Neu
@@ -15,6 +21,11 @@
 - Dropbox-Feldbezeichnungen zeigen jetzt „App-Key“/„App-Secret“ statt der generischen OAuth-Begriffe „Client-ID“/„Client-Secret“, passend zur Terminologie der Dropbox App Console.
 - `vendor/` schlanker: `psr/http-message` und `symfony/deprecation-contracts` (transitive Abhängigkeiten von `league/oauth2-client`/`guzzlehttp/guzzle`) werden nicht mehr dupliziert mitgeliefert, da REDAXO-Core exakt dieselben Versionen bereits selbst mitbringt (`composer.json`-`provide`-Eintrag statt eigener Installation) – siehe [DEV.md](DEV.md).
 - README.md ist jetzt die englische Hauptversion, deutsche Inhalte sind nach [README.de.md](README.de.md) umgezogen (gleiches Muster wie andere FriendsOfREDAXO-Addons in diesem Projekt).
+- Neue Unterseite **CloudConnect → Hilfe** zeigt README.md direkt im Backend (gleiches Muster wie beim `phpmailer`-Addon).
+
+### Behoben
+
+- Seitentitel der Einstellungsseite zeigte `[translate:settings]` statt „Einstellungen“/„Settings“, da der Sprachschlüssel `settings` in keiner Sprachdatei definiert war.
 
 ### Entfernt
 

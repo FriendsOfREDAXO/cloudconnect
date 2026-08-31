@@ -2,6 +2,7 @@
 
 namespace FriendsOfRedaxo\CloudConnect\OAuth;
 
+use FriendsOfRedaxo\Mediaplace\StorageProviderContentInterface;
 use FriendsOfRedaxo\Mediaplace\StorageProviderInterface;
 
 /**
@@ -9,8 +10,12 @@ use FriendsOfRedaxo\Mediaplace\StorageProviderInterface;
  * StorageProviderInterface anbietet -- rein lesendes Browsen/Suchen +
  * Import in den lokalen Medienpool, kein Sync. Gleiches Muster wie
  * nextcloud/lib/MediaplaceProvider.php.
+ *
+ * Implementiert zusaetzlich StorageProviderContentInterface (fuer "Datei aus
+ * Cloud ersetzen" in MediaPlace) -- reine Delegation an die bereits
+ * vorhandene, unentangelte DropboxClient::download().
  */
-class DropboxProvider implements StorageProviderInterface
+class DropboxProvider implements StorageProviderInterface, StorageProviderContentInterface
 {
     private DropboxClient $client;
 
@@ -82,5 +87,10 @@ class DropboxProvider implements StorageProviderInterface
         } finally {
             \rex_file::delete($tmpFile);
         }
+    }
+
+    public function getContent(string $path): string
+    {
+        return $this->client->download($path);
     }
 }

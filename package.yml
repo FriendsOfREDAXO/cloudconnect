@@ -1,5 +1,5 @@
 package: cloudconnect
-version: '0.2.0'
+version: '0.3.0'
 author: FriendsOfREDAXO
 supportpage: https://github.com/FriendsOfREDAXO/cloudconnect
 
@@ -26,3 +26,7 @@ page:
     subpages:
         settings:
             title: 'translate:settings'
+        help:
+            title: 'translate:help'
+            subPath: README.md
+            itemClass: 'pull-right'

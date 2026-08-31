@@ -15,11 +15,18 @@ use FriendsOfRedaxo\CloudConnect\ConnectionStore;
  * (Nextcloud-Wurzel, OHNE /remote.php/dav/...), Benutzername, App-Passwort
  * (siehe README fuer die Erzeugung), optionaler Root-Ordner.
  *
- * Portiert aus dem eigenstaendigen nextcloud-Addon (lib/nextcloud.php), auf
- * den fuer MediaPlace-Browsing/Import relevanten Ausschnitt reduziert (kein
- * Upload/Loeschen/ZIP/Share-Links -- das bleibt Funktionsumfang der
- * eigenstaendigen Nextcloud-Verwaltungsseite, falls das nextcloud-Addon
- * parallel weiterbetrieben wird).
+ * Urspruenglich portiert aus dem eigenstaendigen nextcloud-Addon
+ * (lib/nextcloud.php), inzwischen umgekehrt: das nextcloud-Addon ist jetzt
+ * selbst ein Client DIESER Klasse (kein eigener WebDAV/OCS-Unterbau mehr).
+ * Enthaelt neben dem fuer MediaPlace-Browsing/Import noetigen Ausschnitt
+ * (listFiles/searchFilesRecursive/getContent/getFileId/getPreviewContent)
+ * deshalb auch generische Transport-Bausteine, die nur vom nextcloud-Addon
+ * gebraucht werden (putContent/deleteFile/getFileTags/createShareLink) --
+ * MediaPlace selbst nutzt diese nicht, sie kosten aber nichts, wenn
+ * ungenutzt. Die eigentliche FEATURE-Logik (ZIP-Bau, Share-Link-Caching,
+ * Tag-zu-rex_media-Mapping, Backup-Orchestrierung) bleibt bewusst im
+ * nextcloud-Addon selbst -- diese Klasse liefert nur die authentifizierte
+ * HTTP-Transportarbeit fuer eine einzelne Verbindung.
  *
  * Mehrere Nextcloud-Verbindungen gleichzeitig moeglich (siehe DEV.md) --
  * Konstruktor nimmt optional eine Connection-ID, sonst Auto-Resolve aus dem
@@ -136,6 +143,25 @@ XML;
     }
 
     /**
+     * WebDAV PUT -- schreibt/ueberschreibt eine Datei unter $path. Kein
+     * automatisches Anlegen fehlender Elternordner (MKCOL): der Aufrufer
+     * (nextcloud-Addon) zielt immer auf einen bereits existierenden,
+     * gerade durchsuchten Ordner.
+     */
+    public function putContent(string $path, string $content): void
+    {
+        $this->request($this->buildWebDavUrl($path), 'PUT', $content);
+    }
+
+    /**
+     * WebDAV DELETE einer einzelnen Datei/eines Ordners unter $path.
+     */
+    public function deleteFile(string $path): void
+    {
+        $this->request($this->buildWebDavUrl($path), 'DELETE');
+    }
+
+    /**
      * Gezielter (Depth 0) Lookup der Nextcloud-internen fileid fuer genau
      * einen Pfad -- gebraucht von NextcloudProvider::getThumbnail(), da
      * MediaPlace dort nur den Pfad uebergibt, nicht die schon beim Browsen
@@ -206,6 +232,192 @@ XML;
             'content' => $content,
             'contentType' => is_string($contentType) && '' !== $contentType ? $contentType : 'image/png',
         ];
+    }
+
+    /**
+     * Nextcloud-Tags + interne fileid fuer einen Pfad (oc:tags/oc:fileid via
+     * PROPFIND) -- fuer das nextcloud-Addons Tag-zu-rex_media-Mapping-Feature.
+     * Liefert leere Werte statt einer Exception bei Fehlern (Aufrufer soll
+     * einen fehlenden/kaputten Tag-Abruf nicht als harten Fehler werten).
+     *
+     * @return array{fileid: string|null, tags: list<string>}
+     */
+    public function getFileTags(string $path): array
+    {
+        $body = <<<'XML'
+<?xml version="1.0" encoding="utf-8" ?>
+<d:propfind xmlns:d="DAV:" xmlns:oc="http://owncloud.org/ns">
+    <d:prop>
+        <oc:fileid/>
+        <oc:tags/>
+    </d:prop>
+</d:propfind>
+XML;
+
+        try {
+            $response = $this->requestPropfindCustom($this->buildWebDavUrl($path), $body, 0);
+        } catch (\Throwable) {
+            return ['fileid' => null, 'tags' => []];
+        }
+
+        $clean = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', '', $response);
+        libxml_use_internal_errors(true);
+        try {
+            $xml = new \SimpleXMLElement((string) $clean);
+        } catch (\Throwable) {
+            return ['fileid' => null, 'tags' => []];
+        }
+        $xml->registerXPathNamespace('d', 'DAV:');
+        $xml->registerXPathNamespace('oc', 'http://owncloud.org/ns');
+
+        $fileIdNodes = $xml->xpath('//oc:fileid');
+        $fileId = [] !== $fileIdNodes ? (string) $fileIdNodes[0] : null;
+
+        // Nextcloud liefert Tags entweder als <oc:tag>-Kindelemente oder als
+        // kommaseparierten Text (je nach Server-Version) -- beide Formen
+        // abdecken.
+        $tags = [];
+        $tagChildren = $xml->xpath('//oc:tags/oc:tag');
+        if ([] !== $tagChildren) {
+            foreach ($tagChildren as $tag) {
+                $value = trim((string) $tag);
+                if ('' !== $value) {
+                    $tags[] = $value;
+                }
+            }
+        } else {
+            $tagNodes = $xml->xpath('//oc:tags');
+            if ([] !== $tagNodes) {
+                $text = trim((string) $tagNodes[0]);
+                if ('' !== $text) {
+                    $tags = array_values(array_filter(array_map('trim', explode(',', $text))));
+                }
+            }
+        }
+
+        return ['fileid' => $fileId, 'tags' => $tags];
+    }
+
+    /**
+     * Erstellt einen oeffentlichen Share-Link ueber Nextclouds OCS Share API
+     * -- fuer das nextcloud-Addons Share-Link-Feature (Caching/UI bleibt dort).
+     *
+     * @return array{url: string, token: string, id: int, expiration: string|null}
+     */
+    public function createShareLink(string $displayPath, ?string $expireDate = null, int $permissions = 1): array
+    {
+        $params = [
+            'path' => $this->buildSharePath($displayPath),
+            'shareType' => 3, // 3 = oeffentlicher Link
+            'permissions' => $permissions,
+        ];
+
+        if (null !== $expireDate && '' !== $expireDate) {
+            $timestamp = strtotime($expireDate);
+            if (false !== $timestamp) {
+                $params['expireDate'] = date('Y-m-d', $timestamp);
+            }
+        }
+
+        $result = $this->requestOcs('/apps/files_sharing/api/v1/shares', 'POST', $params);
+
+        $meta = $result['ocs']['meta'] ?? [];
+        if ('ok' !== ($meta['status'] ?? '')) {
+            $code = $meta['statuscode'] ?? 'unknown';
+            $message = $meta['message'] ?? 'Unknown error';
+            throw new \rex_exception('Share link could not be created (' . $code . '): ' . $message);
+        }
+
+        $data = $result['ocs']['data'] ?? [];
+
+        return [
+            'url' => (string) ($data['url'] ?? ''),
+            'token' => (string) ($data['token'] ?? ''),
+            'id' => (int) ($data['id'] ?? 0),
+            'expiration' => $data['expiration'] ?? null,
+        ];
+    }
+
+    private function buildSharePath(string $displayPath): string
+    {
+        $decoded = '/' . ltrim(rawurldecode($displayPath), '/');
+        if ('' === $this->rootFolder) {
+            return $decoded;
+        }
+
+        return rtrim($this->rootFolder, '/') . $decoded;
+    }
+
+    /**
+     * @param array<string, mixed> $params POST-Parameter
+     *
+     * @return array<mixed>
+     */
+    private function requestOcs(string $endpoint, string $method = 'GET', array $params = []): array
+    {
+        $url = $this->baseUrl . '/ocs/v2.php' . $endpoint . '?format=json';
+
+        $headers = ['OCS-APIRequest: true', 'Accept: application/json'];
+        $postBody = '';
+        if ('POST' === $method) {
+            $stringParams = [];
+            foreach ($params as $key => $value) {
+                $stringParams[(string) $key] = (string) $value;
+            }
+            $postBody = http_build_query($stringParams, '', '&');
+            $headers[] = 'Content-Type: application/x-www-form-urlencoded';
+        }
+
+        $ch = curl_init();
+        $options = [
+            CURLOPT_URL => $url,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_USERPWD => $this->username . ':' . $this->password,
+            CURLOPT_HTTPHEADER => $headers,
+            CURLOPT_SSL_VERIFYPEER => $this->sslVerify,
+            CURLOPT_SSL_VERIFYHOST => $this->sslVerify ? 2 : 0,
+            CURLOPT_HEADER => false,
+            // FOLLOWLOCATION bei POST bewusst aus: cURL wuerde POST->GET
+            // konvertieren und den Body (inkl. shareType) beim Redirect verlieren.
+            CURLOPT_FOLLOWLOCATION => false,
+            CURLOPT_CONNECTTIMEOUT => 10,
+            CURLOPT_TIMEOUT => 30,
+        ];
+        if ('POST' === $method) {
+            $options[CURLOPT_POST] = true;
+            $options[CURLOPT_POSTFIELDS] = $postBody;
+        } else {
+            $options[CURLOPT_CUSTOMREQUEST] = $method;
+        }
+        curl_setopt_array($ch, $options);
+
+        $response = curl_exec($ch);
+        $httpCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $errno = curl_errno($ch);
+        $error = curl_error($ch);
+        curl_close($ch);
+
+        if (0 !== $errno) {
+            throw new \rex_exception('OCS API request failed: ' . $error);
+        }
+        if (in_array($httpCode, [301, 302, 307, 308], true)) {
+            throw new \rex_exception('OCS API: Nextcloud redirected (HTTP ' . $httpCode . '). Check the configured base URL (use HTTPS, remove any trailing slash).');
+        }
+        if ($httpCode < 200 || $httpCode >= 400) {
+            $detail = '';
+            if (is_string($response) && '' !== $response) {
+                $decoded = json_decode($response, true);
+                $detail = ' — ' . (is_array($decoded) ? (string) ($decoded['ocs']['meta']['message'] ?? substr($response, 0, 300)) : substr($response, 0, 300));
+            }
+            throw new \rex_exception('OCS API request failed (HTTP ' . $httpCode . ')' . $detail);
+        }
+
+        $data = json_decode((string) $response, true);
+        if (!is_array($data)) {
+            throw new \rex_exception('OCS API: invalid JSON response');
+        }
+
+        return $data;
     }
 
     private function buildWebDavUrl(string $path): string

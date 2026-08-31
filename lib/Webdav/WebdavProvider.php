@@ -2,6 +2,7 @@
 
 namespace FriendsOfRedaxo\CloudConnect\Webdav;
 
+use FriendsOfRedaxo\Mediaplace\StorageProviderContentInterface;
 use FriendsOfRedaxo\Mediaplace\StorageProviderInterface;
 
 /**
@@ -11,8 +12,13 @@ use FriendsOfRedaxo\Mediaplace\StorageProviderInterface;
  * bewusst false und getThumbnail() liefert immer null (Client faellt aufs
  * etablierte Datei-Icon-Fallback zurueck, siehe StorageProviderInterface-
  * Docblock).
+ *
+ * Implementiert zusaetzlich StorageProviderContentInterface (fuer "Datei aus
+ * Cloud ersetzen" in MediaPlace) -- reine Delegation an die bereits
+ * vorhandene, unentangelte WebdavClient::getContent(), dieselbe Methode, die
+ * importToMediaPool() unten schon nutzt.
  */
-class WebdavProvider implements StorageProviderInterface
+class WebdavProvider implements StorageProviderInterface, StorageProviderContentInterface
 {
     private WebdavClient $client;
 
@@ -77,5 +83,10 @@ class WebdavProvider implements StorageProviderInterface
         } finally {
             \rex_file::delete($tmpFile);
         }
+    }
+
+    public function getContent(string $path): string
+    {
+        return $this->client->getContent($path);
     }
 }

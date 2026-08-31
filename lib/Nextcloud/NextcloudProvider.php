@@ -2,6 +2,7 @@
 
 namespace FriendsOfRedaxo\CloudConnect\Nextcloud;
 
+use FriendsOfRedaxo\Mediaplace\StorageProviderContentInterface;
 use FriendsOfRedaxo\Mediaplace\StorageProviderInterface;
 
 /**
@@ -10,8 +11,12 @@ use FriendsOfRedaxo\Mediaplace\StorageProviderInterface;
  * Nextcloud eine Server-Suche (SEARCH-Verb) und eine eigene Vorschaubild-API
  * -- beides wird hier genutzt (Vorbild: nextcloud/lib/MediaplaceProvider.php
  * im eigenstaendigen nextcloud-Addon).
+ *
+ * Implementiert zusaetzlich StorageProviderContentInterface (fuer "Datei aus
+ * Cloud ersetzen" in MediaPlace) -- reine Delegation an die bereits
+ * vorhandene, unentangelte NextcloudClient::getContent().
  */
-class NextcloudProvider implements StorageProviderInterface
+class NextcloudProvider implements StorageProviderInterface, StorageProviderContentInterface
 {
     private NextcloudClient $client;
 
@@ -83,6 +88,11 @@ class NextcloudProvider implements StorageProviderInterface
         } finally {
             \rex_file::delete($tmpFile);
         }
+    }
+
+    public function getContent(string $path): string
+    {
+        return $this->client->getContent($path);
     }
 
     /**

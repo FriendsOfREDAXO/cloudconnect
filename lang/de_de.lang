@@ -1,3 +1,6 @@
+settings = Einstellungen
+help = Hilfe
+
 cloudconnect_settings_title = Verbindungen
 
 cloudconnect_conn_label_label = Bezeichnung
