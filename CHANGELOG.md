@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.0.0] – 2026-08-31
+
+Erstes stabiles Release. Funktionsumfang seit 0.2.0/0.3.x unverändert (WebDAV/Nextcloud/Dropbox, mehrere benannte Verbindungen pro Typ, MediaPlace-Cloud-Speicher-Integration) – der Versionssprung markiert, dass cloudconnect inzwischen produktiv sowohl MediaPlace als auch (seit dessen Version 2.0.0) das eigenständige `nextcloud`-Addon als gemeinsame Transportschicht trägt.
+
 ## [0.3.1] – 2026-08-31
 
 ### Behoben
