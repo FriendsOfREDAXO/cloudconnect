@@ -1,0 +1,67 @@
+The MIT License (MIT)
+
+Copyright (c) 2026 Friends Of REDAXO
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+------------------------------------------------------------------------------
+
+Third-party licenses (vendor/)
+
+CloudConnect ships a small set of Composer dependencies under vendor/,
+needed for the Dropbox OAuth2 flow. All of them are MIT-licensed; the full
+license text for each is included in its own vendor/<package>/LICENSE file.
+Summary:
+
+- league/oauth2-client
+  Copyright (c) 2013-2023 Alex Bilbie <hello@alexbilbie.com>
+  MIT License
+
+- guzzlehttp/guzzle
+  Copyright (c) 2011 Michael Dowling <mtdowling@gmail.com>
+  MIT License
+
+- guzzlehttp/promises
+  Copyright (c) 2015 Michael Dowling <mtdowling@gmail.com>
+  MIT License
+
+- guzzlehttp/psr7
+  Copyright (c) 2015 Michael Dowling <mtdowling@gmail.com>
+  MIT License
+
+- psr/http-client
+  Copyright (c) 2017 PHP Framework Interoperability Group
+  MIT License
+
+- psr/http-factory
+  Copyright (c) 2018 PHP-FIG
+  MIT License
+
+- ralouphie/getallheaders
+  Copyright (c) 2014 Ralph Khattar
+  MIT License
+
+- symfony/polyfill-php80
+  Copyright (c) 2020-present Fabien Potencier <fabien@symfony.com>
+  MIT License
+
+Two further transitive dependencies of the packages above (psr/http-message,
+symfony/deprecation-contracts) are deliberately NOT vendored here, since
+REDAXO core already ships the identical versions itself (see DEV.md,
+"Keine Duplikate zu bereits von REDAXO-Core mitgebrachten Paketen").

@@ -1,0 +1,28 @@
+package: cloudconnect
+version: '0.2.0'
+author: FriendsOfREDAXO
+supportpage: https://github.com/FriendsOfREDAXO/cloudconnect
+
+requires:
+    redaxo: '>=5.18.0'
+    php:
+        version: '>=8.1'
+    packages:
+        # MEDIAPLACE_STORAGE_PROVIDERS-Erweiterungspunkt + StorageProviderInterface
+        # gibt es erst seit dieser Version (siehe mediaplace-CHANGELOG 1.21.0).
+        mediaplace: '>=1.21.0'
+
+# perm: admin -- die Einstellungsseite verwaltet Zugangsdaten (WebDAV-Passwort,
+# OAuth-Client-Secrets) fuer alle drei Provider, ist also grundsaetzlich
+# admin-only. Bewusst von Anfang an gesetzt (nicht wie bei mediaplace selbst
+# zuerst vergessen und spaeter nachgezogen): eine Hauptseite ganz ohne perm,
+# aber mit ausschliesslich admin-only Unterseiten, laesst REDAXO fuer jeden
+# anderen Nutzer beim blossen Seitenaufruf mit "is a main page and therefore
+# has no sub-path" abstuerzen, statt den Menuepunkt einfach nicht zu zeigen.
+page:
+    title: 'CloudConnect'
+    icon: rex-icon fa-cloud-arrow-up
+    perm: admin
+    subpages:
+        settings:
+            title: 'translate:settings'

@@ -1,0 +1,54 @@
+cloudconnect_settings_title = Verbindungen
+
+cloudconnect_conn_label_label = Bezeichnung
+cloudconnect_conn_active_label = Aktiv
+cloudconnect_conn_inactive_label = Inaktiv
+cloudconnect_conn_cancel = Abbrechen
+cloudconnect_conn_edit_title = Bearbeiten
+cloudconnect_conn_new_title = Neue Verbindung
+cloudconnect_conn_col_type = Typ
+cloudconnect_conn_col_label = Bezeichnung
+cloudconnect_conn_col_status = Status
+cloudconnect_conn_col_actions = Aktionen
+cloudconnect_conn_none = Noch keine Verbindungen angelegt.
+cloudconnect_conn_activate = Aktivieren
+cloudconnect_conn_deactivate = Deaktivieren
+cloudconnect_conn_delete = Loeschen
+cloudconnect_conn_delete_confirm = Verbindung wirklich loeschen? Zugangsdaten und Token gehen dabei verloren (bereits importierte Mediendateien bleiben unberuehrt).
+cloudconnect_conn_saved = Verbindung gespeichert.
+cloudconnect_conn_invalid = Bitte Bezeichnung und alle Pflichtfelder ausfuellen.
+cloudconnect_conn_deleted = Verbindung geloescht.
+
+cloudconnect_webdav_url_label = Server-URL
+cloudconnect_webdav_url_hint = Vollstaendige WebDAV-Endpunkt-URL, z. B. https://example.com/remote.php/webdav
+cloudconnect_webdav_username_label = Benutzername
+cloudconnect_webdav_password_label = Passwort
+cloudconnect_webdav_root_label = Wurzel-Pfad
+cloudconnect_webdav_root_hint = Optional: Unterordner auf dem Server, der als Wurzel des Cloud-Baums in MediaPlace dienen soll. Leer lassen fuer den kompletten Server.
+cloudconnect_webdav_ssl_verify_label = SSL-Zertifikat pruefen
+cloudconnect_webdav_ssl_verify_hint = Nur bei selbstsignierten Zertifikaten auf vertrauenswuerdigen internen Servern deaktivieren.
+cloudconnect_webdav_test_btn = Verbindung testen
+cloudconnect_webdav_test_success = Verbindung erfolgreich, {0} Eintrag/Eintraege im Wurzelverzeichnis gefunden.
+cloudconnect_webdav_test_error = Verbindung fehlgeschlagen: {0}
+
+cloudconnect_nextcloud_url_label = Server-URL
+cloudconnect_nextcloud_url_hint = Nextcloud-Basis-URL, ohne /remote.php/dav, z. B. https://cloud.example.com
+cloudconnect_nextcloud_password_label = App-Passwort
+cloudconnect_nextcloud_password_hint = Unter Nextcloud-Einstellungen -> Sicherheit -> App-Passwoerter erzeugen, nicht das echte Kontopasswort verwenden.
+
+cloudconnect_dropbox_key_label = App-Key (Client-ID)
+cloudconnect_dropbox_secret_label = App-Secret (Client-Secret)
+
+cloudconnect_redirect_uri_label = Redirect-URI
+cloudconnect_redirect_uri_hint = Diese URL exakt so in der Dropbox App Console als Redirect-URI hinterlegen.
+cloudconnect_oauth_not_configured = Client-ID/Secret fehlen noch.
+cloudconnect_oauth_not_connected = Noch nicht verbunden.
+cloudconnect_oauth_status_connected = Verbunden als {0}.
+cloudconnect_oauth_disconnect_btn = Verbindung trennen
+cloudconnect_oauth_connect_btn = Verbinden
+cloudconnect_oauth_connected = Erfolgreich mit {0} verbunden.
+cloudconnect_oauth_disconnected = Verbindung getrennt.
+
+cloudconnect_provider_label_webdav = WebDAV
+cloudconnect_provider_label_nextcloud = Nextcloud
+cloudconnect_provider_label_dropbox = Dropbox
